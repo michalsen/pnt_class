@@ -1,0 +1,96 @@
+<?php
+/**
+ * @file
+ * SN PNT Class Tracking
+ */
+function sn_pnt_class_menu() {
+  $items = array();
+  $items['admin/pnt_tracking'] = array(
+    'title' => 'PNT Tracking',
+    'page callback' => 'pnt_tracking',
+    'access arguments' => array('access pnt_tracking content'),
+    'description' => 'PNT Tracking',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    );
+  return $items;
+}
+
+// Ensure Form is not available to anonymous users
+// future fix: role based
+function pnt_tracking() {
+  global $user;
+  if ($user->uid > 0) {
+    return drupal_get_form('pnt_tracking_form');
+  }
+}
+
+// Create form
+function pnt_tracking_form($form, $form_state) {
+  $form['markup'] = array(
+    '#markup' => 'PNT Tracking',
+  );
+
+$forms = array();
+$options = array();
+$checked = db_query('SELECT form_id FROM {sn_pnt_tracking}')->fetchAll();
+
+foreach ($checked as $key => $value) {
+  $options[] = $value->form_id;
+}
+
+$result = db_query('SELECT nid, title FROM {node} WHERE type = :type', array(':type' => 'webform'));
+  foreach ( $result as $row ) {
+    $forms[$row->nid] = $row->title;
+  }
+
+$form['site_webforms'] = array(
+  '#type' => 'checkboxes',
+  '#options' => drupal_map_assoc($forms),
+  '#options' => $forms,
+  '#title' => t('Site Webforms'),
+  '#default_value' => $options
+);
+
+$form['submit'] = array(
+  '#type' => 'submit',
+  '#value' => 'Submit',
+);
+
+$form['#submit'][] = 'pnt_tracking_submit';
+  return $form;
+}
+
+function pnt_tracking_submit($form, &$form_state) {
+  $result = db_truncate('sn_pnt_tracking')->execute();
+    foreach ( $form['site_webforms']['#value'] as $row ) {
+      db_insert('sn_pnt_tracking')
+        ->fields(array(
+         'form_id' => $row
+          ))
+        ->execute();
+    }
+  drupal_set_message(t('SN PNT Tracking Saved.'));
+}
+
+
+// Add pnt class to set forms
+function sn_pnt_class_form_alter(&$form, &$form_state, $form_id) {
+  if (strpos($form_id, 'webform_client_form') !== FALSE) {
+    if (is_form_tracked($form_id)) {
+      $form['#attributes']['class'][]= 'pnt';
+    }
+  }
+}
+
+
+function is_form_tracked($fid) {
+  $webform_ids = array();
+  $query = db_query('SELECT DISTINCT(form_id) FROM {sn_pnt_tracking}')->fetchCol();
+  foreach ( $query as $row['form_id'] ) {
+    if ( isset($row['form_id']) ) {
+      $webform_ids[] = 'webform_client_form_' . $row['form_id'];
+      }
+    }
+  return in_array($fid, $webform_ids);
+}

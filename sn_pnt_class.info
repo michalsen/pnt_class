@@ -1,0 +1,4 @@
+name = "PNT Class"
+description = "Add pnt class to forms"
+core = 7.x
+package = Straight North

@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * SN Tracking install file.
+ */
+
+
+function sn_pnt_class_schema() {
+
+ $schema['sn_pnt_tracking'] = array(
+    'description'     => 'Forms for SN Tracking.',
+      'fields'        => array(
+       'form_id'    => array(
+         'type'       => 'int', 
+         'length'     => 6, 
+         'not null'   => FALSE),
+     ),
+  );
+
+    return $schema;
+
+}
