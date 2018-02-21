@@ -7,23 +7,15 @@ function sn_pnt_class_menu() {
   $items = array();
   $items['admin/pnt_tracking'] = array(
     'title' => 'PNT Tracking',
-    'page callback' => 'pnt_tracking',
-    'access arguments' => array('access pnt_tracking content'),
+    'page callback' => 'pnt_tracking_for',
+    'access arguments' => array('administer access control'),
+    'access callback' => 'user_access',
     'description' => 'PNT Tracking',
-    'access callback' => TRUE,
     'type' => MENU_NORMAL_ITEM,
     );
   return $items;
 }
 
-// Ensure Form is not available to anonymous users
-// future fix: role based
-function pnt_tracking() {
-  global $user;
-  if ($user->uid > 0) {
-    return drupal_get_form('pnt_tracking_form');
-  }
-}
 
 // Create form
 function pnt_tracking_form($form, $form_state) {
